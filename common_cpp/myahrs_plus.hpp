@@ -67,6 +67,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <cinttypes>
 
 #ifdef WIN32
     #include <windows.h>
@@ -342,11 +343,11 @@ namespace WithRobot {
 
         class Thread
         {
-            DWORD thread_id;
             HANDLE thread;
+            DWORD thread_id;
 
         public:
-            Thread() : thread(NULL), thread_id(0){}
+            Thread() : thread(nullptr), thread_id(0){}
 
             bool start(void*(*thread_proc)(void*), void* arg, size_t stack_size=16*1024) {
                 thread = CreateThread(NULL, (DWORD)stack_size, (LPTHREAD_START_ROUTINE)thread_proc, arg, 0, &thread_id);
@@ -614,7 +615,7 @@ namespace WithRobot {
 
             do {
                 ofs = src.find(s1, ofs);
-                if(ofs == -1) {
+                if(ofs == std::string::npos) {
                     return;
                 }
                 src.replace(ofs, s1.length(), s2);
@@ -834,9 +835,9 @@ namespace WithRobot {
 
     public:
         FilterByteStuffing(FrameBuffer& s)
-        : stream(s), crc_calc(0), accumulater(0)
-        , state_receiving(false), last_state(STATE_NOP)
-        , debug(DEBUG_BINARY_PROTOCOL)
+        : state_receiving(false), last_state(STATE_NOP),
+          stream(s), crc_calc(0), accumulater(0),
+          debug(DEBUG_BINARY_PROTOCOL)
         {
             receiver = &FilterByteStuffing::state_data;
         }
@@ -1000,7 +1001,7 @@ namespace WithRobot {
             size_t length;
             bool debug;
 
-            Stream(unsigned char* s, size_t l) : buffer(s), length(l), pos(0), debug(DEBUG_BINARY_PROTOCOL) {
+            Stream(unsigned char* s, size_t l) : buffer(s), pos(0), length(l), debug(DEBUG_BINARY_PROTOCOL) {
                 print_buffer();
             }
 
@@ -1122,7 +1123,7 @@ namespace WithRobot {
             iBinaryProtocol* protocol;
 
         public:
-            BinaryNodeParser(iBinaryProtocol* s, unsigned char* stream, size_t stream_len) : protocol(s), iNodeParser(stream, stream_len) {}
+            BinaryNodeParser(iBinaryProtocol* s, unsigned char* stream, size_t stream_len) : iNodeParser(stream, stream_len), protocol(s) {}
             void new_node(std::vector<Node>& node_list) {
                 protocol->update_attributes(node_list);
             }
@@ -1499,7 +1500,7 @@ namespace WithRobot {
                     "1, 0, 0,  0, -1, 0,  0, 0, -1"
             };
 
-            for(int i=0; i<sizeof(dcm_str)/sizeof(dcm_str[0]); i++) {
+            for(unsigned int i=0; i<sizeof(dcm_str)/sizeof(dcm_str[0]); i++) {
                 DirectionCosineMatrix dcm(dcm_str[i]);
                 Quaternion q = dcm.to_quaternion();
                 printf("dcm : [%s] \n -> q : %.4f, %.4f, %.4f, %.4f\n", dcm_str[i], q.w, q.x, q.y, q.z);
@@ -1895,12 +1896,12 @@ namespace WithRobot {
 
     public:
         iMyAhrsPlus(std::string port_name="", unsigned int baudrate=115200)
-        : serial(port_name.c_str(), baudrate)
-        , debug(DEBUG_MYAHRS_PLUS)
-        , protocol(this)
-        , sensor_id(-1)
-        , activate_user_event(false)
+        : debug(DEBUG_MYAHRS_PLUS)
+        , serial(port_name.c_str(), baudrate)
         , thread_receiver_ready(false)
+        , activate_user_event(false)
+        , sensor_id(-1)
+        , protocol(this)
         {
             // response message parser (ascii)
             ascii_handler_rsp_map[std::string("~trig")]        = &iMyAhrsPlus::ascii_rsp_trigger;
@@ -2373,7 +2374,7 @@ namespace WithRobot {
 				if(response_message_queue.pop(tokens) == false) {
 					if(debug) {
 						Platform::msleep(10);
-						DBG_PRINTF(debug, "ERROR??? : response_queue.pop() returns false (response_queue.size() %lu, cmd=%s)\n", response_message_queue.size(), command_string.c_str());
+                                                DBG_PRINTF(debug, "ERROR??? : response_queue.pop() returns false (response_queue.size() %llu, cmd=%s)\n", response_message_queue.size(), command_string.c_str());
 					}
 					return false;
 				}
@@ -2417,7 +2418,7 @@ namespace WithRobot {
                 }
 
                 if(res) {
-                	DBG_PRINTF(debug, "### OK : message hander returns true. command %s, rcvq_sz %d)\n", cmd_tokens[0].c_str(), response_message_queue.size());
+                        DBG_PRINTF(debug, "### OK : message hander returns true. command %s, rcvq_sz %llu)\n", cmd_tokens[0].c_str(), response_message_queue.size());
                 }
 
                 return res;
@@ -2870,7 +2871,7 @@ namespace WithRobot {
 
             if(debug) {
                 for(size_t i=0; i<node_list.size(); i++) {
-                    DBG_PRINTF(debug, "\t#### node(%lu/%lu)->name[%02X] : %s\n", i, node_list.size(), node_list[i].name[0], node_list[i].name.c_str());
+                    DBG_PRINTF(debug, "\t#### node(%llu/%llu)->name[%02X] : %s\n", i, node_list.size(), node_list[i].name[0], node_list[i].name.c_str());
                 }
             }
 
@@ -3020,9 +3021,9 @@ namespace WithRobot {
 
     public:
         MyAhrsPlus(std::string port="", unsigned int baudrate=115200)
-        : iMyAhrsPlus(port, baudrate), sample_count(0)
+        : iMyAhrsPlus(port, baudrate)
         , attribute_callback(0), attribute_callback_context(0)
-        , data_callback(0), data_callback_context(0)
+        , data_callback(0), data_callback_context(0), sample_count(0)
         {}
 
         virtual ~MyAhrsPlus() {

@@ -31,7 +31,7 @@ You can use the myAHRS+ SDK on embedded platform like odroid or raspberry pi.
 
 Requirements
 
-* Visual studio 2010 
+* Visual studio 2010 or MinGW (tested with MinGW 5.1.0)
 
 Download source tree from github. 
 
@@ -41,6 +41,17 @@ And open the solution file(YOUR_WORKING_DIRECTORY\common_cpp\windows_example\win
 
 See comments in myahrs_plus_example.cpp. 
 
+## CMake
+
+Add this to your CMakeLists.txt
+
+    include_directories(<path_to_common_cpp>)
+
+
+If you are using MinGW, make sure to add (before the previous line)
+
+    add_definitions(-D_USE_MATH_DEFINES)
+
 ## Details   
 
 * myahrs_plus.hpp 
@@ -48,4 +59,3 @@ See comments in myahrs_plus_example.cpp.
   - To use this SDK, include it to your own source file. 
 * myahrs_plus_example.cpp
   - myAHRS+ SDK example
-

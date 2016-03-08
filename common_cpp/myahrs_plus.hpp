@@ -69,14 +69,8 @@
 #include <algorithm>
 
 #ifdef WIN32
-    #define _AFXDLL
-    #include <afx.h>
     #include <windows.h>
     #include <cctype>
-
-    #pragma warning( disable : 4996 ) // sprintf
-    #pragma warning( disable : 4355 ) // warning C4355: 'this' : used in base member initializer list
-    #pragma warning( disable : 4244 ) // warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
 
     #define DBG_PRINTF(x, ...)  {if(x) { printf(__VA_ARGS__);}}
 
@@ -159,11 +153,11 @@ namespace WithRobot {
             bool Open() {
                 char szPort[32];
                 sprintf(szPort, "\\\\.\\%s", port_name.c_str());
-                CString port_str = CString::CStringT(CA2CT(szPort));
+                std::string port_str = std::string(szPort);
 
                 DBG_PRINTF(DEBUG_PLATFORM, "portname : %s, baudrate %d\n", szPort, baudrate);
 
-                m_hIDComDev = CreateFile( (LPCTSTR)port_str,
+                m_hIDComDev = CreateFile( (LPCTSTR)port_str.c_str(),
                                           GENERIC_READ | GENERIC_WRITE,
                                           0,
                                           NULL,
@@ -324,7 +318,7 @@ namespace WithRobot {
                 event = CreateEvent(NULL,
                                     TRUE,  // bManualReset
                                     FALSE,  // bInitialState
-                                    _T("Event"));
+                                    "Event");
             }
 
             ~Event() {
